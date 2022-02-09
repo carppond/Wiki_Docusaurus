@@ -1,0 +1,31 @@
+desc "提交修改"
+lane :wiki_push do |options|
+    puts("准备提交")
+    puts("拉取远程分支修改")
+    git_pull
+    ensure_git_branch
+
+    puts("添加本地修改")
+    git_add(path: '.')
+    # git commit 并增加提交信息'
+    target_desc = options[:desc]
+    begin
+        puts("添加本地修改日志")
+        if target_desc.nil? || target_desc.empty?
+            git_commit(path: '.', message: "release #{target_version}")
+        else
+            git_commit(path: '.', message: target_desc)
+        end
+    rescue
+        error_message = "#{$!}"
+        UI.message("⚠️ commit error:#{error_message}")
+        unless error_message.include?("nothing to commit, working directory clean")
+        exit
+        end
+        UI.message("The local code has committed, skip the commit step!")
+    end
+    # git push 默认 master
+    puts("推送本地修改到远端")
+    push_to_git_remote
+    puts("推送本地修改完成")
+end
