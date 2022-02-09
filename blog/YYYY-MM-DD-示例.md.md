@@ -1,11 +1,3 @@
-# 标题
-
-
-# 标题
-
-### 1
-### 2
-### 4
 - `author`: 用于显示的作者的姓名。
 - `author_url`: 作者的姓名所链接到的 URL。可以是 GitHub、Twitter、Facebook 个人资料链接等。
 - `author_image_url`: 指向作者头像图片的链接。
@@ -25,12 +17,8 @@ console.log('Every repo must come with a mascot.');
 ```
 
 ```jsx {1}
-function HighlightSomeText(highlight) {
-  if (highlight) {
-    return 'This text is highlighted!';
-  }
-
-  return 'Nothing highlighted';
+function HelloCodeTitle(props) {
+  return <h1>Hello, {props.name}</h1>;
 }
 ```
 
