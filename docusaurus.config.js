@@ -70,12 +70,12 @@ const katex = require('rehype-katex');
             label: "博客", // 显示的名称
             position: "right", // 显示在导航的左边还是右边
           },
-          {
-            // href: "http://digest.wiki-power.com/",
-            to: "blog",
-            label: "书籍",
-            position: "right",
-          },
+          // {
+          //   // href: "http://digest.wiki-power.com/",
+          //   to: "blog",
+          //   label: "书籍",
+          //   position: "right",
+          // },
           {
             href: 'https://github.com/carppond',
             label: 'GitHub',
