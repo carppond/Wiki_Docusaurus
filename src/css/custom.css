@@ -1,28 +1,41 @@
-/**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
- */
-
-/* You can override the default Infima variables here. */
+/* 主题色 */
 :root {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: rgb(33, 175, 144);
-  --ifm-color-primary-darker: rgb(31, 165, 136);
-  --ifm-color-primary-darkest: rgb(26, 136, 112);
-  --ifm-color-primary-light: rgb(70, 203, 174);
-  --ifm-color-primary-lighter: rgb(102, 212, 189);
-  --ifm-color-primary-lightest: rgb(146, 224, 208);
-  --ifm-code-font-size: 95%;
+	/*--ifm-color-primary: #0094d9;*/
+	--ifm-color-primary: #02acbe;
 }
 
+/* 目录样式优化 */
+.table-of-contents .table-of-contents__link--active {
+	font-weight: var(--ifm-font-weight-semibold);
+	margin-left: -16px;
+	padding-left: 12px;
+	border-left: 4px solid var(--ifm-link-color);
+}
+
+/* 搜索样式优化（去掉 Ctrl + K） */
+.DocSearch-Button-Key {
+	display: none !important;
+}
+
+/* 去掉侧边栏右侧的分割线 */
+.main-wrapper>div>div {
+	border-right: none !important;
+}
+
+/* 隐藏 scrollbar */
+::-webkit-scrollbar {display:none;}
+
+/* 代码高亮 */
 .docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.1);
-  display: block;
-  margin: 0 calc(-1 * var(--ifm-pre-padding));
-  padding: 0 var(--ifm-pre-padding);
-}
-
+	background-color: rgb(72, 77, 91);
+	display: block;
+	margin: 0 calc(-1 * var(--ifm-pre-padding));
+	padding: 0 var(--ifm-pre-padding);
+   }
+   
+/* 暗黑模式下代码高亮 */
+/* If you have a different syntax highlighting theme for dark mode. */
 html[data-theme='dark'] .docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.3);
-}
+/* Color which works with dark mode syntax highlighting theme */
+	background-color: rgb(100, 100, 100);
+}	
