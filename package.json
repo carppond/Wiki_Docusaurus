@@ -28,6 +28,8 @@
     "react-dom": "^17.0.1",
     "rehype-katex": "^4.0.0",
     "remark-math": "^3.0.1",
+    "remark-mdx": "^2.0.0",
+    "remark-parse": "^10.0.1",
     "trim": "^1.0.1",
     "url-loader": "^4.1.1"
   },
