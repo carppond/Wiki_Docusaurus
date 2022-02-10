@@ -34,5 +34,12 @@ module.exports = {
         },
       ],
     },
+    {
+      type: 'category',
+      label: '计算机基础知识',
+      items: [
+        '计算机基础知识/位运算按位取反',
+      ],
+    },
   ],
 };
