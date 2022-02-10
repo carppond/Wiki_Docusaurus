@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
 - 在`MRC`模式下，获取`weak`指针时，会调用`objc_loadWeak`函数，其内部实现其实是：`objc_autorelease(objc_loadWeakRetained(location))`，即通过`objc_autorelease`来抵消`weak`变量读取过程中的引用计数加`1`的操作，保证对象最后能正常释放。
 ## 4. objc_loadWeakRetained
 下面分析`objc_loadWeakRetained`函数源码，分析之前可以先验证一下`location`参数的内容。还是前面的示例代码，这次断点打在`objc_loadWeakRetained`处，然后通过`LLDB`，可以看到如下你内容：
-![weak_01](./../../assets/iOSBase/weak_01.png)
+![weak_01](./../../../assets/iOS源码分析/weak_01.png)
 通过控制台可以看出，`weakPtr`指向通`obj`的对象地址。
 ​
 

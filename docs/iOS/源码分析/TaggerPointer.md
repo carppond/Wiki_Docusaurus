@@ -20,7 +20,7 @@ Tagged Pointer 是苹果为了在 64 位架构的处理器下节省内存占用�
 - Tagged Pointer指针的值不再是地址，而是真正的值。所以它严格意义上并不是一个对象了，只是一个披着对象外衣的普通变量。所以它的内存并不在堆中，也不需要 malloc、free。
 ## 3. Tagged Pointer 的内存占用
 在 objc-runtime-new.h 中，要求所有的对象至少 分配 16 个字节。
-```objectivec
+```jsx
 inline size_t instanceSize(size_t extraBytes) const {
     if (fastpath(cache.hasFastInstanceSize(extraBytes))) {
         return cache.fastInstanceSize(extraBytes);
@@ -35,7 +35,7 @@ inline size_t instanceSize(size_t extraBytes) const {
 如果没有`Tagged Pointer`，在 64 位设备中，存储一个 NSInteger 类型的 NSNumber 实例对象的时候，需要系统在堆区分配 16 个字节来存储。对象的 isa 指针占用 8 个字节，存储的值占用 8 个字节。指针变量在栈区也要分配 8 个字节空间。而使用`Tagged Pointer`之后，NSNumber 对象在堆区分配 0 个字节，指针变量在栈区分配 8 个字节。
 通过对比来看 `Tagged Pointer`减少了一半的内存占用。
 通过代码来分析下，看看上面的结论是否正确：
-```objectivec
+```jsx
 #import <objc/runtime.h>
 #include <malloc/malloc.h>
 
@@ -68,13 +68,13 @@ number pointer: 8 malloc: 0 CLASS: __NSCFNumber ADDRESS: 0x96c5516a7d1281f9
 
 ## 4. Tagged Pointer 格式
 在查看对象指针时，`64` 位系统中，我们会看到一个 `16` 进制的地址如 `0x00000001003041e0`，把它转换成二进制表示如下图：
-![/taggedpointer_01](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_01.png)
+![/taggedpointer_01](./../../assets/iOS源码分析/taggedpointer_01.png)
 在 64 位系统中，我们用 64 位就可以表示一个对象指针，但是通常没有真正使用到所有的位。由于内存对齐要求的存在，低位始终是 0，高位也始终是 0，对象必须始终位于指针大小倍数的地址中。实际上只用到中间一部分的位：
-![/taggedpointer_02](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_02.png)
+![/taggedpointer_02](./../../assets/iOS源码分析/taggedpointer_02.png)
 因此，我们可以把最低位置设置为 1，表示这个对象是一个 Tagged Pointer 对象。设置为 0 则表示正常的对象。
-![/taggedpointer_03](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_03.png)
+![/taggedpointer_03](./../../assets/iOS源码分析/taggedpointer_03.png)
 在设置为 1 表示 Tagged Pointer 对象之后，在最低位之后的 3 位，赋予它类型的意义，由于只有 3 位，它可表示 7 种类型。
-```objectivec
+```jsx
 OBJC_TAG_NSAtom            = 0, 
 OBJC_TAG_1                 = 1, 
 OBJC_TAG_NSString          = 2, 
@@ -86,11 +86,11 @@ OBJC_TAG_NSDate            = 6,
 OBJC_TAG_RESERVED_7        = 7, 
 ```
 在剩余的字段中，我们可以赋予它所包含的数据。在 Intel 中，我们的 Tagged Pointer 对象的表示如下：
-![/taggedpointer_04](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_04.png)
+![/taggedpointer_04](./../../assets/iOS源码分析//taggedpointer_04.png)
 `OBJC_TAG_RESERVED_7` 类型的 `Tagged Pointer` 是个例外，它可以将接下来后 8 位作为它的扩展类型字段，基于此我们可以多支持 256 中类型的 `Tagged Pointer`，如 `UIColors` 或 `NSIndexSets` 之类的对象。
-![/taggedpointer_05](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_05.png)
+![/taggedpointer_05](./../../assets/iOS源码分析//taggedpointer_05.png)
 上文中，我们介绍的是在 Intel 中 Tagged Pointer 的表示，在 ARM64 中，我们情况有些变化。
-![/taggedpointer_06](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_06.png)
+![/taggedpointer_06](./../../assets/iOS源码分析//taggedpointer_06.png)
 在 ARM64中，最高位代表 Tagged Pointer 的标志位，最低位 3 位来标识 `Tagged Pointer` 的类型，剩余的位来表示包含的数据(可能包含扩展类型字段)。
 为什么在 `ARM64` 上使用高位来标识 `Tagged Pointer`，而不用 Intel 一样使用低位来标识。
 这里主要是对 `objc_msgSend` 的优化。苹果希望 `objc_msgSend`中最常用的路径尽可能快。最常用的路径表示普通对象指针。在使用中有 2 种不常见指针的情况：Tagged Pointer 指针 和 nil。当用最高位来做标志位时，可以通过一次比较来检查。与分别检查 `Tagged Pointer` 指针 和 nil相比，在 `objc_msgSend`节省了很多的条件分支开销。
@@ -99,7 +99,7 @@ OBJC_TAG_RESERVED_7        = 7,
 [小专栏内参翻译](https://xiaozhuanlan.com/topic/1742865930#sectiontaggedpointer)​
 ## 5. 如何判断一个指针是否是 Tagged Pointer 类型
 在`objc-object.h`文件中定义了一个 `isTaggedPointer` 函数，用来判断一个指针变量是否是`Tagged Pointer`。
-```objectivec
+```jsx
 inline bool 
 objc_object::isTaggedPointer() 
 {
@@ -108,7 +108,7 @@ objc_object::isTaggedPointer()
 ```
 ### 5.1 _objc_isTaggedPointer
 函数 `_objc_isTaggedPointer` 定义在`objc-internal.h`中，返回一个 `bool`。
-```objectivec
+```jsx
 static inline bool 
 _objc_isTaggedPointer(const void * _Nullable ptr)
 {
@@ -117,7 +117,7 @@ _objc_isTaggedPointer(const void * _Nullable ptr)
 ```
 可以看出，这里将对象的指针与 `_OBJC_TAG_MASK`掩码进行按位与运算来判断是否 `Tagged Pointer` 。
 `_OBJC_TAG_MASK`的定义如下：
-```objectivec
+```jsx
 #if OBJC_SPLIT_TAGGED_POINTERS
 
 #   define _OBJC_TAG_MASK (1UL<<63)
@@ -135,7 +135,7 @@ xxx
 省略其他和 _OBJC_TAG_MASK 无关的参数
 ```
 `OBJC_SPLIT_TAGGED_POINTERS` 和 `OBJC_MSB_TAGGED_POINTERS` 的定义如下：
-```objectivec
+```jsx
 #if __arm64__
 // ARM64 uses a new tagged pointer scheme where normal tags are in
 // the low bits, extended tags are in the high bits, and half of the
@@ -156,7 +156,7 @@ xxx
 通过上面的定义可以发现，在 `ARM64` 位的设备上通过判断指针值的最高位是否为 `1`，来判断是否是 `Tagged Pointer` 类型。
 ### 5.2 存储结构
 在 `objc-runtime-new.mm` 有一段 `Tagged pointer objects` 的注释如下:
-```objectivec
+```jsx
 /*
 * Tagged pointer objects.
 *
@@ -198,12 +198,12 @@ xxx
 */
 ```
 在 LSB下，最低位存储是否是 `Tagged Pointer` 的标志位。然后跟着 3 位来存储 `tag index` 定义了当前对象的类型。余下的 `60` 位用来存储 `payload(对象的数据)`。
-![/taggedpointer_07](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_07.png)
+![/taggedpointer_07](./../../assets/iOS源码分析//taggedpointer_07.png)
 在 `LSB` 下，当 `tag index` 的值为 `0b111` 时即 `7` 时，`tag index` 的值不在指当前对象的类型，而是要额外占用 `8` 位的空间来存储 `tag index`。这时 `tag index` 可以表示更多的类，但是用来存储数据的空间变少了，减少了 `8` 位，最多占用 `52` 位。
-![/taggedpointer_08](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_08.png)
+![/taggedpointer_08](./../../assets/iOS源码分析//taggedpointer_08.png)
 这 `objc_internal.h`中定义了一些在操作 `Tagged Pointer`时，会用到的位移值的宏定义，有助于我们了解 `Tagged Pointer`存储结构。
 只看 `ARM64`所用到的！！！
-```objectivec
+```jsx
 #if OBJC_SPLIT_TAGGED_POINTERS
 #   define _OBJC_TAG_MASK (1UL<<63) 标志位在最高位
 #   define _OBJC_TAG_INDEX_SHIFT 0  获取tag index时需要移动的位数 tag index在低位 占3位 和mask(111)做与运算
@@ -230,7 +230,7 @@ mac && __x86_64__ 设备
 - 60 位 `playload`：
 - 3 位 `tag index`
 
-![/taggedpointer_09](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_09.png)
+![/taggedpointer_09](./../../assets/iOS源码分析//taggedpointer_09.png)
 在 `ARM64` 位下，有扩展标记时：
 
 - 1 位 `Tagged Pointer`
@@ -238,10 +238,10 @@ mac && __x86_64__ 设备
 - 52 位 `playload`：
 - 3 位 `tag index`：最后 `3` 位是 `111`。这里根据源码可以得值，下面有分析。
 
-![/taggedpointer_10](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_10.png)
+![/taggedpointer_10](./../../assets/iOS源码分析//taggedpointer_10.png)
 ##  6. Tagged Pointer 的编解码、获取 value、tag
 代码示例和上面分析内存占用的一样，代码和打印如下：
-```objectivec
+```jsx
 #import <objc/runtime.h>
 #include <malloc/malloc.h>
 
@@ -261,7 +261,7 @@ number pointer: 8 malloc: 0 CLASS: __NSCFNumber ADDRESS: 0x9709116847619d5a
 ### 6.1 数据编码(混淆)原理
 以下代码分析基于 `__arm64__`
 各种标志值如下：
-```objectivec
+```jsx
 #if OBJC_SPLIT_TAGGED_POINTERS
 #   define _OBJC_TAG_MASK (1UL<<63) 标志位在最高位
 #   define _OBJC_TAG_INDEX_SHIFT 0  获取tag index时需要移动的位数 tag index在低位 占3位 和mask(111)做与运算
@@ -284,7 +284,7 @@ mac && __x86_64__ 设备
 ```
 #### 6.1.1 _objc_makeTaggedPointer
 在 `objc-internal.h`文件中有以下代码，用于创建一个`Tagged Pointer` 对象。
-```objectivec
+```jsx
 // Create a tagged pointer object with the given tag and payload.
 // Assumes the tag is valid.
 // Assumes tagged pointers are enabled.
@@ -319,7 +319,7 @@ _objc_makeTaggedPointer(objc_tag_index_t tag, uintptr_t value)
 根据上面的源码分析：
 ##### 6.1.1.1 判断 tag 的值是否 <= OBJC_TAG_Last60BitPayload
 `OBJC_TAG_Last60BitPayload` 值的设定如下：
-```objectivec
+```jsx
 {
     // 60-bit payloads
     OBJC_TAG_NSAtom            = 0, 
@@ -366,7 +366,7 @@ _objc_makeTaggedPointer(objc_tag_index_t tag, uintptr_t value)
 ##### 6.1.1.2 先假定 tag <=  OBJC_TAG_Last60BitPayload
 这种情况 `OBJC_TAG_Last60BitPayload` 的值一定小于等于 `6`。
 当前判断的源码如下:
-```objectivec
+```jsx
 uintptr_t result =
     (_OBJC_TAG_MASK | 
      ((uintptr_t)tag << _OBJC_TAG_INDEX_SHIFT) | 
@@ -381,7 +381,7 @@ return _objc_encodeTaggedPointer(result);
 3. 将最终的结果赋值给变量 `result`，并当做参数传入 `_objc_encodeTaggedPointer`函数进行编码，并返回结果。
 
   6. 示例演示如下：
-```objectivec
+```jsx
 	假设 
 	tag = 3 :0000 0000 0000 0000 0000 xxxx 0000 0000 0000 0011
 	value : 1234 5234 1234 0000 0000 xxxx 0000 1234 1234 1234
@@ -413,7 +413,7 @@ return _objc_encodeTaggedPointer(result);
 ##### 6.1.1.3 假定 tag >  OBJC_TAG_Last60BitPayload
 这种情况 `OBJC_TAG_Last60BitPayload` 的值一定大于 `6`，从源码来看 `7` 为保留字段，此处的`OBJC_TAG_Last60BitPayload` 值一定大于 `7`。
 当前判断的源码如下:
-```objectivec
+```jsx
 uintptr_t result =
     (_OBJC_TAG_EXT_MASK |
      ((uintptr_t)(tag - OBJC_TAG_First52BitPayload) << _OBJC_TAG_EXT_INDEX_SHIFT) |
@@ -427,7 +427,7 @@ return _objc_encodeTaggedPointer(result);
 2. 把第三部的结果值和 `_OBJC_TAG_EXT_MASK`进行逻辑或。`_OBJC_TAG_EXT_MASK`相当于 以 `1` 开头，以 `111` 结尾的 `64` 位数据，这一步相当于把第三部的结果第一位变成 1，后 3 位变成 1.
 2. 将最终的结果赋值给变量 result，并当做参数传入 `_objc_encodeTaggedPointer`函数进行编码，并返回结果。
 2. 示例演示如下：
-```objectivec
+```jsx
 假设 
 	tag = 10 :0000 0000 0000 0000 0000 xxxx 0000 0000 0000 1010
 	value : 1234 5234 1234 6234 0000 xxxx 0004 1234 1234 1234
@@ -462,7 +462,7 @@ return _objc_encodeTaggedPointer(result);
 有一个有趣的问题：最后 3 位是 1：`tag index = 7`
 #### 6.1.2 _objc_encodeTaggedPointer 编码
 源码如下：
-```objectivec
+```jsx
 static inline void * _Nonnull
 _objc_encodeTaggedPointer(uintptr_t ptr)
 {
@@ -489,7 +489,7 @@ _objc_encodeTaggedPointer(uintptr_t ptr)
 首先来看下参数 `objc_debug_taggedpointer_obfuscator`。
 ##### 6.1.2.1 objc_debug_taggedpointer_obfuscator
 `objc_debug_taggedpointer_obfuscator` 是被定义成一个常量，在 `objc-runtime-new.mm` 有关于相关描述。
-```objectivec
+```jsx
 /***********************************************************************
 * initializeTaggedPointerObfuscator
 * Initialize objc_debug_taggedpointer_obfuscator with randomness.
@@ -504,7 +504,7 @@ _objc_encodeTaggedPointer(uintptr_t ptr)
 ```
 该混淆值旨在使攻击者在存在缓冲区溢出或对某些内存的其他写入控制的情况下更难将特定对象构造为标记指针。其实就是为了安全考虑，防止破坏。混淆值与tagged pointer 进行异或。
 `initializeTaggedPointerObfuscator`函数用来初始化混淆值。
-```objectivec
+```jsx
 static void
 initializeTaggedPointerObfuscator(void)
 {
@@ -541,7 +541,7 @@ initializeTaggedPointerObfuscator(void)
 ```
 新版本应该是 iOS 14([wwdc20/10163期内参](https://developer.apple.com/wwdc20/10163) 中提到对 `Tagged Pointer` ) 之后的版本：
 `bjc_debug_taggedpointer_obfuscator` 的值
-```objectivec
+```jsx
 arc4random_buf(&objc_debug_taggedpointer_obfuscator,
                sizeof(objc_debug_taggedpointer_obfuscator));
 
@@ -550,7 +550,7 @@ objc_debug_taggedpointer_obfuscator &= ~_OBJC_TAG_MASK;
 objc_debug_taggedpointer_obfuscator &= ~(_OBJC_TAG_EXT_MASK | _OBJC_TAG_NO_OBFUSCATION_MASK);
 ```
 在 `iOS14` 之前的版本:
-```objectivec
+```jsx
 objc_debug_taggedpointer_obfuscator = 0
 ```
 #### 6.1.3 编码流程
@@ -561,7 +561,7 @@ objc_debug_taggedpointer_obfuscator = 0
 - 更新上一步结果的 `tag index`
 ### 6.2 数据解码(反混淆)原理
 源码如下：
-```objectivec
+```jsx
 static inline uintptr_t
 _objc_decodeTaggedPointer_noPermute(const void * _Nullable ptr)
 {
@@ -575,7 +575,7 @@ _objc_decodeTaggedPointer_noPermute(const void * _Nullable ptr)
 ```
 这里主要是与混淆前 `objc_debug_taggedpointer_obfuscator `进行异或操作，获取解码数据。
 如果是 `ARM64` 并且开启不需要混淆，会直接打印原值。
-```objectivec
+```jsx
 static inline uintptr_t
 _objc_decodeTaggedPointer(const void * _Nullable ptr)
 {
@@ -601,7 +601,7 @@ _objc_decodeTaggedPointer(const void * _Nullable ptr)
 - 结果中 `tagindex` 位置清零
 - 把 `tag index` 混淆，并把值存储到结果中
 ### 6.3 根据 tagged pointer 获取 value
-```objectivec
+```jsx
 // 无扩展,获取 value
 static inline uintptr_t
 _objc_getTaggedPointerValue(const void * _Nullable ptr) 
@@ -653,7 +653,7 @@ _objc_getTaggedPointerSignedValue(const void * _Nullable ptr)
 - 如果`basicTag == 7`，则认为 `ptr` 是有扩展的 `Tagged Pointer`，获取 value 中 `52` 位的值
 - 如果 `basicTag  != 7`，则认为 `ptr` 是没有扩展的 `Tagged Pointer`，获取 value 中 `60`  位的值
 ### 6.4 根据 tagged pointer 获取 tag
-```objectivec
+```jsx
 /// 获取 tag
 static inline objc_tag_index_t 
 _objc_getTaggedPointerTag(const void * _Nullable ptr) 
@@ -679,7 +679,7 @@ _objc_getTaggedPointerTag(const void * _Nullable ptr)
 ```
 ### 6.5 根据 tag 获取 Class 指针
 获取 `class` 指针的源码在`objc-runtime-new.mm`文件中
-```objectivec
+```jsx
 // Returns a pointer to the class's storage in the tagged class arrays.
 // Assumes the tag is a valid basic tag.
 // 返回一个指向类在tagged pointer 数组中的存储的指针。
@@ -743,7 +743,7 @@ classSlotForTagIndex(objc_tag_index_t tag)
 ```
 ## 7. 其他函数
 ### 7.1 _objc_taggedPointersEnabled
-```objectivec
+```jsx
 static inline bool
 _objc_taggedPointersEnabled(void)
 {
@@ -758,7 +758,7 @@ _objc_taggedPointersEnabled(void)
 可以通过 `OBJC_DISABLE_TAGGED_POINTERS`  环境变量来关闭函数编码
 ### 8.1 value 验证
 示例：
-```objectivec
+```jsx
 #import <UIKit/UIKit.h>
 #import "objc-internal.h"
 
@@ -787,7 +787,7 @@ int main(int argc, char * argv[]) {
 ```
 对于字符串类型的 `Tagged Pointer` 而言，最后一位代表字符串的长度，前面每两位代表一个字符。`0x61`、`0x62`、`0x63`、`0x64`、0x66` 分别对应 `a`、`b`、`c`、`d`、f的 `ASCII` 码。
 示例 2:
-```objectivec
+```jsx
 #import <UIKit/UIKit.h>
 #import "objc-internal.h"
 
@@ -813,7 +813,7 @@ int main(int argc, char * argv[]) {
 在 `NSNumber` 的打印中，`1`、`17`、`21` 分别对应`1` 、`23`、`33` 的 `ASCII` 码。后面的`3` 可能代表其类型，因为源码中 `tag index = 3`对应的是 `OBJC_TAG_NSNumber = 3`。
 ### 8.2 结构验证
 示例：
-```objectivec
+```jsx
 #import <UIKit/UIKit.h>
 #import "objc-internal.h"
 
@@ -850,7 +850,7 @@ int main(int argc, char * argv[]) {
 }
 ```
 打印结果：
-```objectivec
+```jsx
 [NSNumber numberWithChar:1] - 0x8000000000000083
 [NSNumber numberWithUnsignedChar:1] - 0x800000000000008b
 [NSNumber numberWithShort:1] - 0x800000000000008b
@@ -867,7 +867,7 @@ int main(int argc, char * argv[]) {
 [NSNumber numberWithDouble:1] - 0x80000000000000ab
 ```
 对应的二进制如下：
-```objectivec
+```jsx
 Char
 1000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0011
 

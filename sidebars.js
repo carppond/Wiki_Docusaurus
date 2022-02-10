@@ -17,19 +17,48 @@ module.exports = {
     'Home',
     {
       type: 'category',
-      label: 'iOS基础知识',
+      label: 'iOS',
       items: [
-        'iOSBase/TaggerPointer',
         {
           type: 'category',
-          label: '02 | weak 底层实现原理',
+          label: '源码分析',
           items: [
-            'iOSBase/weak/weak底层实现原理一',
-            'iOSBase/weak/weak底层实现原理二：objc-weak函数列表全解析',
-            'iOSBase/weak/weak底层实现原理三：weak_entry_t',
-            'iOSBase/weak/weak底层实现原理四：weak变量从初始化到被置为nil都经历了什么',
-            'iOSBase/weak/weak底层实现原理五：ARC和MRC下weak变量的访问过程',
-            
+            'iOS/源码分析/TaggerPointer',
+            {
+              type: 'category',
+              label: '02 | weak 底层实现原理',
+              items: [
+                'iOS/源码分析/weak/weak底层实现原理一',
+                'iOS/源码分析/weak/weak底层实现原理二：objc-weak函数列表全解析',
+                'iOS/源码分析/weak/weak底层实现原理三：weak_entry_t',
+                'iOS/源码分析/weak/weak底层实现原理四：weak变量从初始化到被置为nil都经历了什么',
+                'iOS/源码分析/weak/weak底层实现原理五：ARC和MRC下weak变量的访问过程',
+              ],
+            },
+          ],
+        },
+        {
+          type: 'category',
+          label: '碎片知识整理',
+          items: [
+            'iOS/碎片知识整理/AVPlayer截取视频流的当前帧',
+          ],
+        },
+        {
+          type: 'category',
+          label: '文章收录',
+          items: [
+            'iOS/文章收录/基础知识整理',
+            'iOS/文章收录/二进制重排',
+            'iOS/文章收录/启动优化',
+            'iOS/文章收录/组件化文章',
+          ],
+        },
+        {
+          type: 'category',
+          label: '工具',
+          items: [
+            'iOS/工具/fastlane',
           ],
         },
       ],
