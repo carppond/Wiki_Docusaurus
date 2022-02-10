@@ -3,7 +3,7 @@
 
 # Production
 /build
-/fastlane/report.xml
+fastlane/report.xml
 
 # Generated files
 .docusaurus
