@@ -1,18 +1,11 @@
 ---
-id: Tagger Pointer
+id: TaggerPointer
 title: 01 | Tagger Pointer
 author: 鲤鱼
 description: Tagger Pointer相关知识
 tag:
   - iOS基础知识
 ---
----
-id: creating-pages
-title: Creating Pages
-slug: /creating-pages
-sidebar_label: Pages
----
-
 
 ## 1. 背景
 
@@ -65,7 +58,7 @@ number pointer: 8 malloc: 0 CLASS: __NSCFNumber ADDRESS: 0x96c5516a7d1281f9
 **源码基于 objc4-818.2。**
 **源码基于 objc4-818.2。**
 `Tagged Pointer`源码主要位于 `objc-internal.h`文件中，在文件中定义了 `OBJC_HAVE_TAGGED_POINTERS` 的宏，表示尽在 `__LP64__` 环境中支持 `Tagged Pointer`。
-```objectivec
+```jsx
 #if __LP64__
 #define OBJC_HAVE_TAGGED_POINTERS 1
 #endif
@@ -74,11 +67,11 @@ number pointer: 8 malloc: 0 CLASS: __NSCFNumber ADDRESS: 0x96c5516a7d1281f9
 
 ## 4. Tagged Pointer 格式
 在查看对象指针时，`64` 位系统中，我们会看到一个 `16` 进制的地址如 `0x00000001003041e0`，把它转换成二进制表示如下图：
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804413086-c0211431-ae5e-4f64-816d-64d0c6c47945.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=286&id=uf0577915&margin=%5Bobject%20Object%5D&name=image.png&originHeight=286&originWidth=1656&originalType=binary&ratio=1&rotation=0&showTitle=false&size=88095&status=done&style=none&taskId=ua4b0867d-a57c-45e1-a03c-a83d4b93331&title=&width=1656)
+![/taggedpointer_01](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_01.png)
 在 64 位系统中，我们用 64 位就可以表示一个对象指针，但是通常没有真正使用到所有的位。由于内存对齐要求的存在，低位始终是 0，高位也始终是 0，对象必须始终位于指针大小倍数的地址中。实际上只用到中间一部分的位：
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804546687-a05ed6d4-1b82-4d8b-b986-d6eebffd5c89.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=274&id=u8a3b8205&margin=%5Bobject%20Object%5D&name=image.png&originHeight=274&originWidth=1586&originalType=binary&ratio=1&rotation=0&showTitle=false&size=128950&status=done&style=none&taskId=ub2f1d208-ef83-413a-8448-17150fd0c00&title=&width=1586)
+![/taggedpointer_02](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_02.png)
 因此，我们可以把最低位置设置为 1，表示这个对象是一个 Tagged Pointer 对象。设置为 0 则表示正常的对象。
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804602606-ee981f2e-511d-4851-b8ab-02040e29231d.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=462&id=u7f589c49&margin=%5Bobject%20Object%5D&name=image.png&originHeight=462&originWidth=1614&originalType=binary&ratio=1&rotation=0&showTitle=false&size=144098&status=done&style=none&taskId=ua0fb81f5-bca0-477f-b736-8c688acbcb8&title=&width=1614)
+![/taggedpointer_03](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_03.png)
 在设置为 1 表示 Tagged Pointer 对象之后，在最低位之后的 3 位，赋予它类型的意义，由于只有 3 位，它可表示 7 种类型。
 ```objectivec
 OBJC_TAG_NSAtom            = 0, 
@@ -92,11 +85,11 @@ OBJC_TAG_NSDate            = 6,
 OBJC_TAG_RESERVED_7        = 7, 
 ```
 在剩余的字段中，我们可以赋予它所包含的数据。在 Intel 中，我们的 Tagged Pointer 对象的表示如下：
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804770777-8def8c13-c824-47da-aef0-e5a83f249899.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=198&id=ud2c7f019&margin=%5Bobject%20Object%5D&name=image.png&originHeight=198&originWidth=1608&originalType=binary&ratio=1&rotation=0&showTitle=false&size=67951&status=done&style=none&taskId=u533fe820-5419-4707-8d48-1cbc0b6afd1&title=&width=1608)
+![/taggedpointer_04](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_04.png)
 `OBJC_TAG_RESERVED_7` 类型的 `Tagged Pointer` 是个例外，它可以将接下来后 8 位作为它的扩展类型字段，基于此我们可以多支持 256 中类型的 `Tagged Pointer`，如 `UIColors` 或 `NSIndexSets` 之类的对象。
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804814134-a4db1326-d65f-4ef1-8b18-a14e66c57494.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=252&id=uc1010cc7&margin=%5Bobject%20Object%5D&name=image.png&originHeight=252&originWidth=1612&originalType=binary&ratio=1&rotation=0&showTitle=false&size=81333&status=done&style=none&taskId=u6f4fc18d-5884-4ce0-8718-5889d9cacbf&title=&width=1612)
+![/taggedpointer_05](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_05.png)
 上文中，我们介绍的是在 Intel 中 Tagged Pointer 的表示，在 ARM64 中，我们情况有些变化。
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641804827435-97518872-a796-43f2-88a7-b2e3daa489bd.png#clientId=ud187be69-1407-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=226&id=udee5b9c0&margin=%5Bobject%20Object%5D&name=image.png&originHeight=226&originWidth=1644&originalType=binary&ratio=1&rotation=0&showTitle=false&size=64557&status=done&style=none&taskId=u2cfd262b-ba61-4fef-98e4-3a890f0c2ce&title=&width=1644)
+![/taggedpointer_06](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_06.png)
 在 ARM64中，最高位代表 Tagged Pointer 的标志位，最低位 3 位来标识 `Tagged Pointer` 的类型，剩余的位来表示包含的数据(可能包含扩展类型字段)。
 为什么在 `ARM64` 上使用高位来标识 `Tagged Pointer`，而不用 Intel 一样使用低位来标识。
 这里主要是对 `objc_msgSend` 的优化。苹果希望 `objc_msgSend`中最常用的路径尽可能快。最常用的路径表示普通对象指针。在使用中有 2 种不常见指针的情况：Tagged Pointer 指针 和 nil。当用最高位来做标志位时，可以通过一次比较来检查。与分别检查 `Tagged Pointer` 指针 和 nil相比，在 `objc_msgSend`节省了很多的条件分支开销。
@@ -204,9 +197,9 @@ xxx
 */
 ```
 在 LSB下，最低位存储是否是 `Tagged Pointer` 的标志位。然后跟着 3 位来存储 `tag index` 定义了当前对象的类型。余下的 `60` 位用来存储 `payload(对象的数据)`。
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641869802808-eaab944f-23ac-4bcc-b253-f7c33d4be827.png#clientId=ua01b5cce-b4b2-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=265&id=u535887cf&margin=%5Bobject%20Object%5D&name=image.png&originHeight=265&originWidth=976&originalType=binary&ratio=1&rotation=0&showTitle=false&size=27542&status=done&style=none&taskId=u0bffc338-475e-4ccc-ae8b-eee26d5ec87&title=&width=976)
+![/taggedpointer_07](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_07.png)
 在 `LSB` 下，当 `tag index` 的值为 `0b111` 时即 `7` 时，`tag index` 的值不在指当前对象的类型，而是要额外占用 `8` 位的空间来存储 `tag index`。这时 `tag index` 可以表示更多的类，但是用来存储数据的空间变少了，减少了 `8` 位，最多占用 `52` 位。
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641870284186-8436db2c-a72b-4276-aaff-69c8a0046ca6.png#clientId=ua01b5cce-b4b2-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=268&id=uea7ffc25&margin=%5Bobject%20Object%5D&name=image.png&originHeight=268&originWidth=951&originalType=binary&ratio=1&rotation=0&showTitle=false&size=33045&status=done&style=none&taskId=ue739f17f-6d08-455b-81f6-e9b13544716&title=&width=951)
+![/taggedpointer_08](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_08.png)
 这 `objc_internal.h`中定义了一些在操作 `Tagged Pointer`时，会用到的位移值的宏定义，有助于我们了解 `Tagged Pointer`存储结构。
 只看 `ARM64`所用到的！！！
 ```objectivec
@@ -236,7 +229,7 @@ mac && __x86_64__ 设备
 - 60 位 `playload`：
 - 3 位 `tag index`
 
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641870926591-6f69caa0-8871-4825-8166-f939fca220f9.png#clientId=ua01b5cce-b4b2-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=275&id=ud8783742&margin=%5Bobject%20Object%5D&name=image.png&originHeight=275&originWidth=960&originalType=binary&ratio=1&rotation=0&showTitle=false&size=29485&status=done&style=none&taskId=ua50fc0ae-bf51-4ebe-afc5-b8510c4d061&title=&width=960)
+![/taggedpointer_09](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_09.png)
 在 `ARM64` 位下，有扩展标记时：
 
 - 1 位 `Tagged Pointer`
@@ -244,8 +237,8 @@ mac && __x86_64__ 设备
 - 52 位 `playload`：
 - 3 位 `tag index`：最后 `3` 位是 `111`。这里根据源码可以得值，下面有分析。
 
-![image.png](https://cdn.nlark.com/yuque/0/2022/png/1424701/1641871587151-dbaffdd2-a8be-40c5-9cb8-d3768c7c5324.png#clientId=ua01b5cce-b4b2-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=264&id=ue4d7585c&margin=%5Bobject%20Object%5D&name=image.png&originHeight=264&originWidth=1033&originalType=binary&ratio=1&rotation=0&showTitle=false&size=36054&status=done&style=none&taskId=u11b905d9-0c5b-4ef8-9d12-56acdeaa7dd&title=&width=1033)
-##  6.0 Tagged Pointer 的编解码、获取 value、tag
+![/taggedpointer_10](./assets/iOSBase/../../../assets/iOSBase/taggedpointer_10.png)
+##  6. Tagged Pointer 的编解码、获取 value、tag
 代码示例和上面分析内存占用的一样，代码和打印如下：
 ```objectivec
 #import <objc/runtime.h>

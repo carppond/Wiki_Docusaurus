@@ -20,6 +20,13 @@ module.exports = {
       label: 'iOS基础知识',
       items: [
         'iOSBase/TaggerPointer',
+        {
+          type: 'category',
+          label: '02 | weak 底层实现原理',
+          items: [
+            'iOSBase/weak/weak底层实现原理(一)：SideTable、weak_table_t、weak_entry_t 等数据结构',
+          ],
+        },
       ],
     },
   ],
