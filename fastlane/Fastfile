@@ -3,7 +3,7 @@ lane :wiki_push do |options|
     puts("准备提交")
     puts("拉取远程分支修改")
     git_pull
-    ensure_git_branch
+    # ensure_git_branch
 
     puts("添加本地修改")
     git_add(path: '.')

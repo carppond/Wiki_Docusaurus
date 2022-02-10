@@ -46,6 +46,34 @@ module.exports = {
       label: '逆向与安全',
       items: [
         '逆向与安全/签名',
+        '逆向与安全/注入闪退相关',
+        {
+          type: 'category',
+          label: 'ARM 汇编基础',
+          items: [
+            '逆向与安全/ARM/ARM汇编总览',
+            '逆向与安全/ARM/寄存器',
+            '逆向与安全/ARM/指令集',
+            '逆向与安全/ARM/栈及传参规则',
+            '逆向与安全/ARM/具体指令使用细节',
+            '逆向与安全/ARM/if_switch_循环',
+            
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Frida 使用',
+          items: [
+            '逆向与安全/Frida/在iOS上分析应用',
+            '逆向与安全/Frida/Hook大法，拦截器的使用',
+            '逆向与安全/Frida/如何拦截sub_xxxx这种函数',
+            '逆向与安全/Frida/API查找器和拦截器的组合使用',
+            '逆向与安全/Frida/远程过程调用RPC的使用方法',
+            '逆向与安全/Frida/非越狱环境下使用Frida',
+            '逆向与安全/Frida/总结',
+            
+          ],
+        },
       ],
     },
   ],
