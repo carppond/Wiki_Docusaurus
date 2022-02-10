@@ -105,5 +105,12 @@ module.exports = {
         },
       ],
     },
+    {
+      type: 'category',
+      label: '招聘一个靠谱的iOS',
+      items: [
+        '招聘一个靠谱的iOS/面试题一：属性关键字',
+      ],
+    },
   ],
 };
