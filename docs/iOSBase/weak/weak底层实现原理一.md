@@ -1,11 +1,11 @@
 ---
-id: weak底层实现原理(一)：SideTable、weak_table_t、weak_entry_t 等数据结构
-title: 01 | weak 底层实现原理(一)：SideTable、weak_table_t、weak_entry_t 等数据结构
+id: weak底层实现原理一
+slug: weak底层实现原理一.html
+title: 01 | weak底层实现原理(一)：SideTable、weak_table_t、weak_entry_t等数据结构
 author: 鲤鱼
-description: weak 底层实现原理
+description: weak底层实现原理
 tag:
   - iOS基础知识
-  - weak
 ---
 
 ## 01、```template <typename T> class DisguisedPtr```
@@ -17,7 +17,7 @@ tag:
 
 > ```DisguisedPtr<T>``` 类似于指针类型 T*，只是存储的值被伪装成对 `leaks` 等工具隐藏。 nil 本身是伪装成的，所以 0 值的内存可以按预期工作而不会崩溃，这意味着 0x80..00 本身也伪装了，但我们不在乎。 请注意，weak_entry_t 知道这种编码。
 
-```
+```jsx
 template <typename T>
 class DisguisedPtr {
     // unsigned long 类型的 value,足够保存转化为整数的内存地址
@@ -103,7 +103,7 @@ static inline bool operator != (DisguisedPtr<objc_object> lhs, id rhs) {
 
 
 根据下面源码实现 `Lock` 的部分,发现抽象类型 `T` 必须支`lock`、`unlock`、`forceReset`、`lockdebu_lock_precedes_lock` 函数接口。已知 `struct SideTable` 都有提供。
-```
+```jsx
 template<typename T>
 class StripedMap {
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
@@ -218,19 +218,19 @@ class StripedMap {
 
 >  __weak 变量的地址(objc_object**)。这些指针被伪装存储,因此内存分析工具不会看到大量从弱引用表(weak table)到对象(objects)的内部指针。
 
-```
+```jsx
 // 这里的 T 是 objec_object *, 那么 DisguisedPtr 里的 T* 就是objec_object **, 即为指针的指针.
 typedef DisguisedPtr<objc_object *> weak_referrer_t;
 ```
 ## 04、PTR_MINUS_2
 用于不同平台下标识位域长度.这里是用于 `struct weak_entry_t` 中 `num_refs` 的位域长度.
-```
+```jsx
 // out_of_line_ness 和 num_refs 两者加在一起共用 64 bit 内存空间
 uintptr_t        out_of_line_ness : 2;
 uintptr_t        num_refs : PTR_MINUS_2; // 针对不同的平台 num_refs 是高 62 bit 或者高30 bit
 
 ```
-```
+```jsx
 #if __LP64__
 #define PTR_MINUS_2 62
 #else
@@ -245,7 +245,7 @@ uintptr_t        num_refs : PTR_MINUS_2; // 针对不同的平台 num_refs 是�
 
 > 存储在弱引用表中的内部结构。 它维护和存储指向对象的弱引用哈希(weak_referrer_t)。 如果 out_of_line_ness != REFERRERS_OUT_OF_LINE 则该集合是一个小型内联数组(长度为 4 的weak_referrer_t数组)。
 
-```
+```jsx
 #define WEAK_INLINE_COUNT 4
 ```
 ## 06、REFERRERS_OUT_OF_LINE
@@ -259,7 +259,7 @@ uintptr_t        num_refs : PTR_MINUS_2; // 针对不同的平台 num_refs 是�
 > ​out_of_line_ness 字段与 inline_referrers[1] 的低两位内存空间重叠。 inline_referrers[1] 是一个指针对齐地址的 DisguisedPtr。 指针对齐的 DisguisedPtr 的低两位将始终为 0b00(8字节对齐取得的地址的二进制表示的后 2 位始终是 0)（伪装为 nil 或 0x80..00）或 0b11（任何其他地址）。因此 out_of_line_ness == 0b10 用于标记out-of-line,即struct weak_entry_t 内部是使用哈希表存储 weak_referrer_t 而不再使用那个长度为 4 的 weak_referrer_t 数组。。
 > out_of_line_ness 和 num_refs 两者加起来一起共用 64bit 的空间
 
-```
+```jsx
 #define REFERRERS_OUT_OF_LINE 2 // 二进制表示 0010
 ```
 ## 07、struct weak_entry_t 
@@ -267,7 +267,7 @@ uintptr_t        num_refs : PTR_MINUS_2; // 针对不同的平台 num_refs 是�
 ​
 
 `weak_entry_t` 的哈希数组内存储的是 `DisguisedPtr<objc_object *> weak_referrer_t`, 实质上是弱引用变量的地址，即 `objc_object **new_referrer`, 通过操作指针的指针，就可以使得弱引用变量在对象析构后指向 `nil`。这里必须保存弱引用变量的地址，才能把它的指向置为 `nil`。
-```
+```jsx
 struct weak_entry_t {
     // referent 中存放的是化身为整的 objcf_object 实例的地址,下面保存的一众弱引用变量都指向这个 objc_object 实例
     DisguisedPtr<objc_object> referent;
@@ -336,7 +336,7 @@ struct weak_entry_t {
 
 > weak_table_t 是全局的保存弱引用的哈希表。 将 object ids 存储为keys，和 weak_entry_t 结构作为它们的value 。
 
-```
+```jsx
 struct weak_table_t {
     // 存储 weak_entry_t 的哈希数组
     weak_entry_t *weak_entries;
@@ -358,10 +358,8 @@ struct weak_table_t {
 -  一块是 `RefcountMap refcnts` 管理对象的引用计数
 - 一块是 `weak_table_t weak_table` 管理对象的弱引用标量
 
-​
-
 `refents` 涉及的内容,暂时先不关注,着重看一下 `weak_table` 的内容
-```
+```jsx
 // Template parameters. 模块参数
 enum HaveOld { DontHaveOld = false, DoHaveOld = true }; // 是否有旧值
 enum HaveNew { DontHaveNew = false, DoHaveNew = true }; // 是否有新值
@@ -410,7 +408,7 @@ struct SideTable {
 ​
 
 `os_unfair_lock` 在其成员变量`_os_unfair_lock_opaque`中记录了当前获取它的线程信息，只有获得更该锁的线程才能够解开这把锁。
-```
+```jsx
  OS_UNFAIR_LOCK_AVAILABILITY
  typedef struct os_unfair_lock_s {
      uint32_t _os_unfair_lock_opaque;
@@ -427,7 +425,7 @@ struct SideTable {
 > ​我们不能使用 C++ static initializer 来初始化某些全局变量，因为 libc 在 C++ initializers 调用之前调用了我们。
 > ​因为额外的间接性,我们也不需要指向某些全局变量的全局指针。ExplicitInit / LazyInit 包装很难做到这一点。
 
-```
+```jsx
 template <typename Type>
 class ExplicitInit {
     // typedef unsigned char uint8_t 长度为 1 个字符的 int,实际类型是无符号的 char
@@ -453,7 +451,7 @@ public:
 `SideTables` 是一个类型是```StripedMap<SideTable>```的静态全局哈希。通过上面`StripedMap`的学习，已知在 `iphone`下，它是固定长度为 `8` 的哈希数组，在 `mac` 下是固定长度为 `64`的哈希数组,自带一个简单的哈希函数，
 根据 `void*`入参计算哈希值,然后根据哈希值取得哈希数组中对应的 `T`。
 `SideTables`中则是取得的 `T`是 `SideTable`。
-```
+```jsx
 // ExplicitInit 内部_storage 数组长度是: alignas(Type) uint8_t _storage[sizeof(Type)];
 static objc::ExplicitInit<StripedMap<SideTable>> SideTablesMap;
 
@@ -464,7 +462,7 @@ static StripedMap<SideTable>& SideTables() {
 `SideTables()` 下面定义了多个与锁相关的全局函数,内部实现是调用`StripeMap`的模板抽象类型 T 所支持的函数接口，对应 `SideTables` 的 T 类型是 `SideTable`， 而`SideTable`执行对应的函数时正式调用了它的`spinlock_t slock` 成员变量的函数。这里采用了分离锁的机制,即一张 `SideTable`一把锁，减轻并处理多个对象时阻塞压力。
 ## 13、weak_entry_for_referent
 根据给定的`referent` (对象变量)和`weak_table_t`哈希表,查找其中的`weak_entry_t`(存放所有指向 `referent`的弱引用变量的地址的哈希表)并返回,如果未找到返回 `NULL`
-```
+```jsx
 /** 
  * Return the weak reference table entry for the given referent. 
  * If there is no entry for referent, return NULL. 
@@ -515,7 +513,7 @@ size_t begin = hash_pointer(referent) & weak_table->mask;
 `hash_pointer(referent)`调用通用的指针哈希函数，后面的 `& weak_table->mask`位操作来确保得到的 `begin` 不会越界，同我们日常使用的`取模操作（%）`是一样的功能，只是改为了位操作，提升了效率。
 ### 14.1 mask & 操作确保 begin 不越界
 这里的`与运算`其实很巧妙，首先是 `mask` 的值一直是 `2` 的 `N` 次方减 `1` ，根据 `weak_grow_maybe` 函数，我们会看到哈希数组（`weak_entry_t *weak_entries`）的长度最小是 `64`，即 `2` 的 `6` 次方（`N >= 6`），以后的每次扩容是之前的长度乘以 `2`，即总长度永远是 `2` 的 `N` 次方，然后 `mask` 是 `2` 的 `N`次方减 `1`，转为二进制的话：`mask` 一直是: `0x0111111(64 - 1，N = 6)`、`0x01111111(128 - 1，N = 7)`...., 即 `mask` 的二进制表示中后 `N` 位总是 `1`，之前的位总是 `0`，所以任何数与 `mask` 做与操作的结果总是在 `[0, mask]` 这个区间内。例如任何数与 `0x0111111(64 - 1，N = 6)`做与操作的话结果总是在 `[0, 63]` 这个区间内。而这个正是 `weak_entry_t *weak_entries` 数组的下标范围。
-```
+```jsx
 // 哈希函数,与 mask 做与操作,防止 index 越界
 static inline uintptr_t hash_pointer(objc_object *key) {
     // 把指针强转化为 unsigned long,然后调用 ptr_hash 函数
@@ -547,7 +545,7 @@ static inline uint32_t ptr_hash(uint32_t key)
 `weak_table_t` 下面是四个函数声明，这里我们只要看下它们的作用就好，具体的分析过程在《iOS weak 底层实现原理(二)：objc-weak 函数列表全解析》。
 ### 15.1 weak_register_no_lock
 添加一对(`object`，`weak pointer`)到弱引用表里. 当一个对象存在第一个指向它的 `weak` 变量时,此时会把对象注册进 `weak_table_t` 的哈希表中,同时也会把这第一个 `weak` 变量的地址保存进对象的 `weak_entry_t` 哈希表中,如果这个 `weak`变量不是第一个的话，表明这个对象此时已经存在于 `weak_table_t`哈希表中,此时需要把这个指向它的`weak`变量的地址保存进该对象的`weak_entry_t`哈希表中
-```
+```jsx
 /// Adds an (object, weak pointer) pair to the weak table.
 // 将对象、弱引用指针添加到弱引用表中
 id weak_register_no_lock(weak_table_t *weak_table, id referent, 
@@ -555,15 +553,14 @@ id weak_register_no_lock(weak_table_t *weak_table, id referent,
 ```
 ### 15.2 weak_unregister_no_lock
 从弱引用表里移除一对(`object`，` weak pointer`)。(从对象的 `weak_entry_t` 哈希表中移除一个 `weak` 变量的地址)
-```
-
+```jsx
 /// Removes an (object, weak pointer) pair from the weak table.
 // 从弱引用表中移除一个对象或者弱引用指针
 void weak_unregister_no_lock(weak_table_t *weak_table, id referent, id *referrer);
 ```
 ### 15.3 weak_is_registered_no_lock
 如果一个对象在弱引用表的某处,即该对象被保存都在弱引用表里(该对象存在弱引用),则返回 true
-```
+```jsx
 #if DEBUG
 /// Returns true if an object is weakly referenced somewhere.
 // 如果么个对象在某处被弱引用，就返回 true
@@ -572,8 +569,7 @@ bool weak_is_registered_no_lock(weak_table_t *weak_table, id referent);
 ```
 ### 15.4 weak_clear_no_lock
 当对象销毁的时候该函数会调用。设置所有剩余的`__weak`变量指向`nil`，此处正对应了我们日常挂在嘴边上的：`__weak`变量在它指向的对象被销毁后它便会置为 `nil` 的机制。
-```
-
+```jsx
 /// Called on object destruction. Sets all remaining weak pointers to nil.
 // 在销毁对象的时候，将所有弱引用指针清空
 void weak_clear_no_lock(weak_table_t *weak_table, id referent);
@@ -582,7 +578,7 @@ void weak_clear_no_lock(weak_table_t *weak_table, id referent);
 以 `weak_table_t`位参数，调用`weak_grow_maybe`和`weak_compact_maybe`函数，用来当 `weak_table_t`哈希数组过满 或者过空的情况下及时调整其长度,优化内存的使用效率，并提高哈希查找效率。这两个函数通过调用`weak_resize`函数来调整`weak_table_t`哈希数组的长度。
 ### 16.1 weak_grow_maybe
 此函数会在创建`weak_entry_t`和把`new_entry`添加到`weak_table_t`哈希数组之间调用，下面看下它的实现。
-```
+```jsx
 // 如果给定区域的弱引用表已满,则进行扩展
 static void weak_grow_maybe(weak_table_t *weak_table)
 {
@@ -602,7 +598,7 @@ static void weak_grow_maybe(weak_table_t *weak_table)
 该函数用于扩充 `weak_table`的`weak_entry_t *weak_entries`的长度，扩充条件是`num_entries`超过了 `mask +1`的 3/4。看到 `weak_entries`的初始化长度是 `64`,每次扩充的长度则是 `mask+1`的 `2` 倍，扩充完毕后会把原哈希数组中的 `weak_entry_t`重新哈希化插入到新空间内，并更新 `weak_table_t`各成员变量。占据的内存空间的总容量则是`(mask+1) *size(weak_entry_t)`字节。综上 `mask + 1`总是`2`的`N`次方。(初始时`N`是 `2^6`，以后则是`N>=6`)。
 ### 16.2 weak_compact_maybe
 此函数会在`weak_entry_remove`函数中调用，旨在`weak_entry_t`从`weak_table_t`的哈希数组中移除后，如果哈希数组中占用比较低的话，缩小`weak_entry_t *weak_entries`的长度，优化内存使用，同时提高哈希效率。
-```
+```jsx
 // Shrink the table if it is mostly empty.
 // 即当 weak_table_t 的 weak_entry_t *weak_entries 数组大部分空间为空的情况下,所以 weak_entries 的长度
 static void weak_compact_maybe(weak_table_t *weak_table)
@@ -624,7 +620,7 @@ static void weak_compact_maybe(weak_table_t *weak_table)
 缩小`weak_entry_t *weak_entries`的长度的条件是目前的总长度超过了`1024`，并且容量占用比小于`1/16`，`weak_entries`空间缩小到当前空间的`1/8`。
 ### 16.3 weak_resize
 扩大和缩小空间都会调用`weak_resize`公共函数，入参是`weak_table_t`和一个指定的长度
-```
+```jsx
 static void weak_resize(weak_table_t *weak_table, size_t new_size)
 {
     // 这里是取得当前哈希数组的总长度
@@ -668,7 +664,7 @@ static void weak_resize(weak_table_t *weak_table, size_t new_size)
 ```
 ### 16.4 weak_entry_insert
 把`weak_entry_t`添加到`weak_table_t->weak_entries`中。
-```
+```jsx
 /** 
  * Add new_entry to the object's table of weak references.
  * 添加 new_entry 到保存对象的 weak 变量地址的哈希表中

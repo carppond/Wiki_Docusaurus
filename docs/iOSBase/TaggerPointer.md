@@ -3,6 +3,7 @@ id: TaggerPointer
 title: 01 | Tagger Pointer
 author: 鲤鱼
 description: Tagger Pointer相关知识
+slug: TaggerPointer.html
 tag:
   - iOS基础知识
 ---
