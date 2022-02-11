@@ -157,7 +157,7 @@ const katex = require('rehype-katex');
           sidebarPath: require.resolve("./sidebars.js"), // 侧边栏
           showLastUpdateAuthor: false,
           showLastUpdateTime: false,
-          editUrl: "https://github.com/linyuxuanlin/Wiki_Docusaurus/edit/main/",
+          editUrl: "https://github.com/carppond/Wiki_Docusaurus/tree/edit/docs",
           remarkPlugins: [math],
           rehypePlugins: [katex],
         },
@@ -169,7 +169,7 @@ const katex = require('rehype-katex');
           showReadingTime: false,
           path: 'blog',
           blogSidebarTitle: 'Recent',
-          editUrl: 'https://github.com/linyuxuanlin/Wiki_Docusaurus/edit/main/',
+          editUrl: 'https://github.com/carppond/Wiki_Docusaurus/tree/edit/blog',
           /*
           feedOptions: {
             type: 'all', // required. 'rss' | 'feed' | 'all'
