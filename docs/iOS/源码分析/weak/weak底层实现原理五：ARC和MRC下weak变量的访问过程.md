@@ -72,52 +72,55 @@ int main(int argc, char * argv[]) {
 通过控制台可以看出，`weakPtr`指向通`obj`的对象地址。
 
 ```jsx
-// 控制台右侧：
-(lldb) p weakPtr // 打印 weakPtr 指向
-(NSObject *) $0 = 0x000000010112f010
+// 控制台打印
+(lldb) p weakPtr  // 打印 weakPtr 指向
+(id) $0 = 0x0000000101044410
 
-// objc_loadWeakRetained 函数参数 location
+// 打印 objc_loadWeakRetained 函数参数 location
 (lldb) p location
-(id *) $1 = 0x00007ffeefbff558
+(id *) $1 = 0x00007ffeefbff448
 
-// 打印 location 内存空间里的内容，正是我们的 obj 对象 
+// 打印 loacation 内存空间里的内容，正式 weakPtr 的指向，对象 obj
 (lldb) p *location
-(NSObject *) $2 = 0x000000010112f010
+(id) $2 = 0x0000000101044410
 
 // 查看寄存器
 (lldb) register read
 General Purpose Registers:
-       rax = 0x000000010112f010
-       rbx = 0x00007ffeefbff558
-       rcx = 0x0000000000000307
-       rdx = 0x00007ffeefbff398
-       
-       rdi = 0x00007ffeefbff558 // rdi 放的 location 参数
-       
+       rax = 0x000000000000000a
+       rbx = 0x0000000000000000
+       rcx = 0xe6bd0c13423500c9
+       rdx = 0x0000000000000000
+       rdi = 0x00007ffeefbff448 // rdi 放的是 location 参数
        rsi = 0x0000000000000000
-       rbp = 0x00007ffeefbff520
-       rsp = 0x00007ffeefbff3f0
-        r8 = 0x0000000000000001
-        r9 = 0x0000000000000002
-       r10 = 0x00007ffeefbff6e8
-       r11 = 0x00000001003d3af0  libobjc.A.dylib`::objc_loadWeakRetained(id *) at NSObject.mm:464
+       rbp = 0x00007ffeefbff410
+       rsp = 0x00007ffeefbff2e0
+        r8 = 0x00007fff8066f018  __sFX + 248
+        r9 = 0x00007fff8066f010  __sFX + 240
+       r10 = 0x0000000000000002
+       r11 = 0x0000000100352a40  libobjc.A.dylib`objc_loadWeakRetained at NSObject.mm:731
        r12 = 0x0000000000000000
        r13 = 0x0000000000000000
-       r14 = 0x0000000000000001
+       r14 = 0x000000010200b038
        r15 = 0x0000000000000000
-       rip = 0x00000001003d3b02  libobjc.A.dylib`::objc_loadWeakRetained(id *) + 18 at NSObject.mm:473:12
-    rflags = 0x0000000000000206
+       rip = 0x0000000100352a52  libobjc.A.dylib`objc_loadWeakRetained + 18 at NSObject.mm:742:12
+    rflags = 0x0000000000000202
         cs = 0x000000000000002b
         fs = 0x0000000000000000
         gs = 0x0000000000000000
 
-(lldb) memory read 0x00007ffeefbff558 // 读取 0x00007ffeefbff558 里面的内容
-0x7ffeefbff558: 10 f0 12 01 01 00 00 00 00 00 00 00 00 00 00 00  ................
-0x7ffeefbff568: 00 00 00 00 00 00 00 00 80 f5 bf ef fe 7f 00 00  ................
+// 读取 0x00007ffeefbff448 里面的内容
+(lldb) memory read 0x00007ffeefbff448
+0x7ffeefbff448: 10 44 04 01 01 00 00 00 00 00 00 00 00 00 00 00  .D..............
+0x7ffeefbff458: 00 00 00 00 00 00 00 00 78 f4 bf ef fe 7f 00 00  ........x.......
 (lldb) 
 
-// 从后往前读 0x7ffeefbff558 中的内容
-0x010112f010 // 正是我们的 obj 对象
+/*
+因为 iOS 是小端，所以从后往前度 0x00007ffeefbff448 的内容：
+00 00 00 00 00 00 00 00 00 00 00 01 01 04 44 10 ==  0x0101044410
+
+0x0101044410 正是对象 obj
+*/
 ```
 
 ```jsx

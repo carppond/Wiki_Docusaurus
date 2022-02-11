@@ -85,7 +85,7 @@ static inline bool operator != (DisguisedPtr<objc_object> lhs, id rhs) {
 }
 
 ```
-## 02、```template<typename T> classStripedMap``` 
+## 02、```template<typename T> class StripedMap``` 
 > ```StripedMap<T>``` is a map of void* -> T, sized appropriately for cache-friendly lock striping.  For example, this may be used as ```StripedMap<spinlock_t>``` or as ```StripedMap<SomeStruct>``` where SomeStruct stores a spin lock.
 > ​
 
