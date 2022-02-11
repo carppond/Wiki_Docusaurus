@@ -111,6 +111,7 @@ module.exports = {
       items: [
         '招聘一个靠谱的iOS/面试题一：属性关键字',
         '招聘一个靠谱的iOS/面试题二',
+        '招聘一个靠谱的iOS/reverse-interview',
       ],
     },
   ],
