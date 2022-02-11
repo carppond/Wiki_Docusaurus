@@ -28,6 +28,40 @@ const katex = require('rehype-katex');
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       hideableSidebar: false, // 让边栏可收起展开
+
+      algolia: {
+        // The application ID provided by Algolia
+        appId: 'UK4D1HRBTC',
+  
+        // Public API key: it is safe to commit it
+        apiKey: '4c0dd9fbd519ff9c148dd85383c7cbe2',
+  
+        indexName: 'wiki-power',
+  
+        // Optional: see doc section below
+        contextualSearch: true,
+  
+        // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
+        externalUrlRegex: 'external\\.com|domain\\.com',
+  
+        // Optional: Algolia search parameters
+        searchParameters: {},
+  
+        //... other Algolia params
+      },
+      // algolia: {
+      //   apiKey: "4c0dd9fbd519ff9c148dd85383c7cbe2",
+      //   indexName: "wiki-power",
+  
+      //   // Optional: see doc section bellow
+      //   contextualSearch: true,
+  
+      //   // Optional: Algolia search parameters
+      //   searchParameters: {},
+  
+      //   //... other Algolia params
+      // },
+  
       colorMode: {
 
         disableSwitch: false,
