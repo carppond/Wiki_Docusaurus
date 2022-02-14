@@ -35,6 +35,7 @@ module.exports = {
                 'iOS/源码分析/weak/weak底层实现原理五：ARC和MRC下weak变量的访问过程',
               ],
             },
+            'iOS/源码分析/associatedObject',
           ],
         },
         {
